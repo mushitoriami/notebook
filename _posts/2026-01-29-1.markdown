@@ -1,0 +1,64 @@
+---
+layout: post
+title:  "Pro Git 第二版の日本語翻訳をローカルでビルドする"
+tags:
+- Pro Git
+- Ruby
+---
+
+[Pro Git 第二版の日本語翻訳](https://github.com/progit/progit2-ja)を手元でビルドすることを試みた。
+
+環境は以下の通り。
+```
+% uname -a
+Darwin sakuramochi.local 24.6.0 Darwin Kernel Version 24.6.0: Mon Jul 14 11:30:34 PDT 2025; root:xnu-11417.140.69~1/RELEASE_ARM64_T8103 x86_64
+% ruby --version
+ruby 3.4.8 (2025-12-17 revision 995b59f666) +PRISM [x86_64-darwin24]
+```
+
+`README.asc`にビルド手順の指示があるが、これに従って`bundle install`を実行したところ、以下のようなエラーが出た。
+```
+% bundle install
+Fetching https://github.com/asciidoctor/asciidoctor-epub3
+Fetching gem metadata from https://rubygems.org/..........
+Resolving dependencies...
+Could not find compatible versions
+
+Because every version of asciidoctor-epub3 depends on asciidoctor ~> 2.0
+  and Gemfile depends on asciidoctor = 1.5.6.1,
+  asciidoctor-epub3 cannot be used.
+So, because Gemfile depends on asciidoctor-epub3 >= 0,
+  version solving has failed.
+```
+これは、必要なライブラリのバージョンが整合していないことによるエラーである。
+要求バージョンを書き換えながら色々と試行錯誤してみたが、`bundle install`をエラーなく通すことはできなかった。
+
+そこで、`README.asc`の指示通りのコマンドを直接実行することをひとまずあきらめ、代わりに必要なコマンドだけを実行することを考える。
+つまり、HTML・Epub・Mobi・PDFの4つの形式のドキュメントをビルドする代わりに、HTML形式だけをビルドすることを目指す。
+出力されるドキュメントの内容を確認するだけであれば、HTML形式だけで十分である。
+
+`Rakefile`によると、HTMLファイルの生成に必要なコマンドは次の2つである。
+
+- `git shortlog -s --all| grep -v -E '(Straub|Chacon)' | cut -f 2- | column -c 120 > book/contributors.txt`
+- `bundle exec asciidoctor progit.asc`
+
+前者は`git`や`grep`などの標準的なコマンドだけで構成されているため、依存パッケージは必要ない。
+後者を実行するためには`asciidoctor`をインストールする必要があるが、これは`gem install`によりエラーなくインストールすることができた。
+ただし、バージョンは`Gemfile`で指定されている通り`1.5.6.1`を使う。
+
+```
+% gem install asciidoctor --version 1.5.6.1
+(omitted)
+Successfully installed asciidoctor-1.5.6.1
+1 gem installed
+```
+
+これにより、HTMLファイルを生成するための2つのコマンドが実行できる。
+ただし2つめのコマンドは、さきほどインストールした`asciidoctor`を使うため、`bundler`を経由せずに直接呼び出すように書き換えている。
+
+```
+% git shortlog -s --all| grep -v -E '(Straub|Chacon)' | cut -f 2- | column -c 120 > book/contributors.txt
+% asciidoctor _1.5.6.1_ progit.asc
+```
+
+結果として、`progit.html`が生成される。

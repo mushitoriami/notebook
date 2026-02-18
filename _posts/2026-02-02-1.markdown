@@ -1,0 +1,46 @@
+---
+layout: post
+title: "macOSのclang++におけるインクルードエラーの原因について"
+tags:
+- macOS
+- clang++
+---
+
+[以前のエントリ](https://mushitoriami.github.io/notebook/ruby/jekyll/clang++/2026/01/24/macOSにjekyllをインストールしたときのエラーとその解決.html)において、macOS付属の`clang++`が壊れていた。以下にそのときのエラーを再掲する。
+```
+% cat test.cpp
+#include <iostream>
+int main() {
+    return 0;
+}
+% clang++ test.cpp
+test.cpp:1:10: fatal error: 'iostream' file not found
+    1 | #include <iostream>
+      |          ^~~~~~~~~~
+1 error generated.
+```
+これは、C++の標準ライブラリのヘッダファイルのひとつである`iostream`が見つからないというエラーであり、インクルードパスが正しくないと推測される。
+
+環境は以下の通り。
+
+```
+% uname -a
+Darwin sakuramochi.local 24.6.0 Darwin Kernel Version 24.6.0: Mon Jul 14 11:30:34 PDT 2025; root:xnu-11417.140.69~1/RELEASE_ARM64_T8103 x86_64
+```
+
+調査したところ、[stackoverflowの質問と回答](https://stackoverflow.com/questions/79160879/iostream-not-found-with-g-and-clang-on-macos)を見つけた。
+これによると、`/Library/Developer/CommandLineTools/usr/include/c++/v1`というディレクトリが存在すると標準ライブラリが見つからなくなるとのこと。
+このディレクトリは旧バージョンで使われていたものであり、これが残っていると現在のバージョンにおけるヘッダファイルの配置場所を探索しなくなるらしい。
+
+現状`clang++`は正しく動作しているのだが、実際にそのディレクトリを追加して試してみると、確かに同様のエラーが発生することが確認できた。
+```
+% sudo mkdir -p /Library/Developer/CommandLineTools/usr/include/c++/v1
+Password:
+% clang++ test.cpp
+test.cpp:1:10: fatal error: 'iostream' file not found
+    1 | #include <iostream>
+      |          ^~~~~~~~~~
+1 error generated.
+```
+
+以前のエントリで`clang++`が動作しなかった原因はおそらくこれだと思われるが、確認する前に`rm -rf`で全てを吹き飛ばしてしまったため、今となっては知る由もない。

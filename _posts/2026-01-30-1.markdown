@@ -1,0 +1,112 @@
+---
+layout: post
+title:  "Pro Git 第二版をローカルでビルドする"
+tags:
+- Pro Git
+- Ruby
+- kindlegen
+---
+
+
+[以前のエントリ](https://notebook.komorebi-sakuramochi.com/2026/01/29/1.html)でPro Git第二版の日本語翻訳のビルドをしたが、
+こちらは英語版でのビルドを試みた記録である。
+
+環境は以下の通り。
+
+```
+% uname -a
+Darwin sakuramochi.local 24.6.0 Darwin Kernel Version 24.6.0: Mon Jul 14 11:30:34 PDT 2025; root:xnu-11417.140.69~1/RELEASE_ARM64_T8103 x86_64
+% ruby --version
+ruby 3.4.8 (2025-12-17 revision 995b59f666) +PRISM [x86_64-darwin24]
+```
+
+まずは`README.asc`に従って`bundle install`をしたところ、以下のエラーが出た。
+
+```
+% bundle install
+Fetching gem metadata from https://rubygems.org/...........
+Resolving dependencies...
+(omitted)
+Installing kindlegen 3.1.1 with native extensions
+Gem::Ext::BuildError: ERROR: Failed to build gem native extension.
+
+    current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/kindlegen-3.1.1/ext
+/Users/sakuramochi/.rubies/ruby-3.4.8/bin/ruby -rrubygems /Users/sakuramochi/.gem/ruby/3.4.8/gems/rake-13.3.1/exe/rake RUBYARCHDIR\=/Users/sakuramochi/.gem/ruby/3.4.8/extensions/x86_64-darwin-24/3.4.0-static/kindlegen-3.1.1
+RUBYLIBDIR\=/Users/sakuramochi/.gem/ruby/3.4.8/extensions/x86_64-darwin-24/3.4.0-static/kindlegen-3.1.1
+rake aborted!
+Zlib::GzipFile::Error: not in gzip format (Zlib::GzipFile::Error)
+/Users/sakuramochi/.gem/ruby/3.4.8/gems/kindlegen-3.1.1/ext/Rakefile:31:in 'Zlib::GzipReader#initialize'
+/Users/sakuramochi/.gem/ruby/3.4.8/gems/kindlegen-3.1.1/ext/Rakefile:31:in 'Zlib::GzipReader.open'
+/Users/sakuramochi/.gem/ruby/3.4.8/gems/kindlegen-3.1.1/ext/Rakefile:31:in 'block in Object#create_task_for_unix'
+/Users/sakuramochi/.gem/ruby/3.4.8/gems/rake-13.3.1/exe/rake:27:in '<main>'
+Tasks: TOP => default => install => kindlegen
+(See full trace by running task with --trace)
+open(https://web.archive.org/web/20200814013519/https://kindlegen.s3.amazonaws.com/KindleGen_Mac_i386_v2_9.zip)
+save to KindleGen_Mac_i386_v2_9.zip
+
+rake failed, exit code 1
+
+Gem files will remain installed in /Users/sakuramochi/.gem/ruby/3.4.8/gems/kindlegen-3.1.1 for inspection.
+Results logged to /Users/sakuramochi/.gem/ruby/3.4.8/extensions/x86_64-darwin-24/3.4.0-static/kindlegen-3.1.1/gem_make.out
+
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/builder.rb:139:in 'Gem::Ext::Builder.run'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/rake_builder.rb:33:in 'Gem::Ext::RakeBuilder.build'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/builder.rb:218:in 'Gem::Ext::Builder#build_extension'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/builder.rb:250:in 'block in Gem::Ext::Builder#build_extensions'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/builder.rb:249:in 'Array#each'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/ext/builder.rb:249:in 'Gem::Ext::Builder#build_extensions'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems/installer.rb:809:in 'Gem::Installer#build_extensions'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/rubygems_gem_installer.rb:115:in 'Bundler::RubyGemsGemInstaller#build_extensions'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/rubygems_gem_installer.rb:30:in 'Bundler::RubyGemsGemInstaller#install'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/source/rubygems.rb:217:in 'block in Bundler::Source::Rubygems#install'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/rubygems.rb:1052:in 'Gem.time'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/source/rubygems.rb:216:in 'Bundler::Source::Rubygems#install'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/installer/gem_installer.rb:54:in 'Bundler::GemInstaller#install'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/installer/gem_installer.rb:17:in 'Bundler::GemInstaller#install_from_spec'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/installer/parallel_installer.rb:133:in 'Bundler::ParallelInstaller#do_install'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/installer/parallel_installer.rb:124:in 'block in Bundler::ParallelInstaller#worker_pool'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/worker.rb:62:in 'Bundler::Worker#apply_func'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/worker.rb:57:in 'block in Bundler::Worker#process_queue'
+  <internal:kernel>:168:in 'Kernel#loop'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/worker.rb:54:in 'Bundler::Worker#process_queue'
+  /Users/sakuramochi/.rubies/ruby-3.4.8/lib/ruby/site_ruby/3.4.0/bundler/worker.rb:90:in 'block (2 levels) in Bundler::Worker#create_threads'
+
+An error occurred while installing kindlegen (3.1.1), and Bundler cannot continue.
+
+In Gemfile:
+  kindlegen
+```
+
+どうやら`kindlegen`というパッケージの`gem`をインストールする途中でエラーが発生しているらしい。`gem install kindlegen --version 3.1.1`を実行しても同様のエラーが発生した。
+
+一般論として、ライブラリAのビルド(またはその他の動作)の過程でエラーが発生したとき、
+仮にそれがライブラリBのエラーに起因するものであると明確に分かっている場合でも、ライブラリAの方にも報告をするのが正しい。
+なぜなら、ライブラリAが動作しないことはライブラリBが動作しないこととは独立した問題だからだ。
+ライブラリAの側ではこの問題に対し、ライブラリBが修正されるまでの迂回策を用意したり、そもそも依存しないように修正するなどの対応を取ることになるだろう。
+
+ということで、このエラーが発生するという事実を(同様のIssueが存在しないことを確認した上で)progit2リポジトリに[Issue](https://github.com/progit/progit2/issues/2066)として送った。
+ちなみにこのリポジトリは一年ほど前からIssueにコメントがついておらず、メンテナからの反応はあまり期待できない。
+それでもIssueを送るのは、同じ現象に遭遇して検索で辿り着く人がいるかもしれないからである。
+
+さて、本題に戻ってビルドエラーの確認を進める。`kindlegen`のインストール過程で上記のエラーが発生しているのだが、
+エラーメッセージをそのまま検索すると、kindlegenリポジトリに[Issue](https://github.com/tdtds/kindlegen/issues/51)がすでに上がっていることが分かった。
+これによると、`kindlegen`を動作させるためにはAmazon公式が配布するバイナリが必要なのだが、最新の(つまり32bitバイナリが動作しない)macOSはサポートされていないということらしい。
+
+要するに、手詰まりである。一般ユーザである自分にできることは何もない。
+そこで、以前のエントリと同じく目的を切り替え、HTMLファイルだけを生成することを目指してみる。
+
+まずは依存パッケージから`kindlegen`を取り除く。
+すなわち、`Gemfile`における`gem 'kindlegen', '3.1.1'`という行(最終行)をコメントアウトする。
+これにより、`bundle install`がエラーなく完了した。
+
+次に、HTMLファイルだけを生成するコマンドを特定するのだが、これは`README.asc`に記述があり、以下のコマンドを実行すれば良いとのこと。
+
+```
+$ bundle exec rake book:build_html
+Hash on header of contributors list (55b541e9) matches the current HEAD (55b541e9)
+Converting to HTML...
+bundle exec asciidoctor --attribute revnumber='2.1.450' --attribute revdate='2026-01-30' -a data-uri progit.asc
+ -- HTML output at progit.html
+```
+
+これも特にエラーなく実行することができて、出力として`progit.html`が得られた。

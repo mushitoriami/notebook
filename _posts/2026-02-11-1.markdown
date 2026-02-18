@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "Github PagesにwwwをつけたカスタムドメインにHTTPSでアクセスできない"
+tags:
+- GitHub Pages
+- カスタムドメイン
+- HTTPS
+---
+
+現在、このエントリを含む雑記ブログはGitHub Pagesで公開しており、カスタムドメインとして`notebook.komorebi-sakuramochi.com`を設定している。
+具体的には、リポジトリの設定の「`Pages > Custom Domain`」にこのドメインを設定した上で、
+`mushitoriami.github.io`(`mushitoriami`は私のGitHubアカウントのユーザ名)を指すように、CNAMEレコードを設定している。
+さらに、`www.`を先頭に付け加えたドメイン(`www.notebook.komorebi-sakuramochi.com`)も同様のCNAMEレコードを設定している。
+この構成は、GitHubが公式で推奨しており([GitHub公式ドキュメント](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)参照)、
+こうすることで、 `www.notebook.komorebi-sakuramochi.com`から`notebook.komorebi-sakuramochi.com`へのリダイレクトを自動で行ってくれるとのこと。
+
+また、GitHub PagesはHTTPSに対応しており、<https://notebook.komorebi-sakuramochi.com>にアクセスすることができる。
+アクセスするだけなら特に設定は必要ないが、カスタムドメインの設定の直後の"Enforce HTTPS"というチェックボックスをONにすることにより、
+`http://notebook.komorebi-sakuramochi.com`から`https://notebook.komorebi-sakuramochi.com`へのリダイレクトを行うこともできる。
+
+そして、以上の仕様から自然に推論すると、`www.notebook.komorebi-sakuramochi.com`に対しても同様のことが期待される。
+しかし、それは正しくないようだ。つまり、<https://www.notebook.komorebi-sakuramochi.com>にアクセスすることができず、
+SSL証明書に関するエラーが発生する。
+
+これは、以前から知られている問題のようで、これについて議論している[非公式フォーラムのIssue](https://github.com/isaacs/github/issues/1675)を見つけることができた。
+これによると、[2021年の変更](https://github.blog/changelog/2021-04-08-github-pages-can-now-automatically-secure-the-www-variant-of-your-custom-domain/)によって解決したとされており、それによってIssueはCloseとなっている。
+しかし、私のケースでは解決していない。
+
+この[2021年の変更](https://github.blog/changelog/2021-04-08-github-pages-can-now-automatically-secure-the-www-variant-of-your-custom-domain/)には、以下のような記述がある。
+
+> When configuring a custom domain for your GitHub Pages site, we will now automatically request a certificate for both the Apex and www subdomain of that custom domain if DNS is configured appropriately.
+
+これは、以下のように解釈できる:
+
+「以上のような構成(`www`あり/`www`なしのカスタムドメインを両方とも`*.github.io`に向ける構成)とすることで、`www`あり/`www`なしの両方にHTTPSでアクセスできる。**ただし`www`なしのドメインがApexドメインである場合に限る**」
+
+つまり、`example.com`と`www.example.com`であれば動作する(`example.com`をカスタムドメインとして設定すれば`www.example.com`にHTTPSでアクセスできる)が、
+`sub.example.com`と`www.sub.example.com`だと動作しない、ということであり、
+今回のように`notebook.komorebi-sakuramochi.com`と`www.notebook.komorebi-sakuramochi.com`の2つをリダイレクトによって結ぶような構成は、
+GitHubが推奨している構成にもかかわらず、HTTPSに対応することができない、ということになる。
+
+解決策としては、以下の2つが考えられる。
+* GitHubが推奨している構成を採用しない
+    * `www.`を付け加えたドメインの設定をしない、という方法
+    * 設定画面においてかなり強い警告が出るが、一応動作する
+* ドメインを変更する
+    * サブドメインではなく、Apexドメインをカスタムドメインとして使用する、という方法

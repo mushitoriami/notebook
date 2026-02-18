@@ -1,0 +1,26 @@
+---
+layout: post
+title:  "Route53でTXTレコードを追加しようとした際に発生したUnknownErrorについて"
+tags:
+- Route53
+- TXTレコード
+- CNAMEレコード
+- UnknownError
+---
+
+Route53で管理しているドメイン(`notebook.komorebi-sakuramochi.com`)に対してTXTレコードを追加しようとしたところ、エラーが発生した。
+レコード追加の操作はAWS Console上で行ったのだが、エラーメッセージは「エラーが発生しました。後でもう一度お試しください。(UnknownError)」というものであった。
+ちなみにTXTレコードの内容は任意であり、どのような値を入力しても同じエラーが発生した。
+
+原因は、`notebook.komorebi-sakuramochi.com`にCNAMEレコードがすでに設定されていたことである。
+このドメインは、GitHub Pagesで公開しているWebサイト（つまり、*これ*のこと）にカスタムドメインとして設定しているものであり、
+[GitHub公式のドキュメント](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)に従ってCNAMEレコードを設定してあった。
+
+同じラベル(サブドメイン)に対して、TXTレコードとCNAMEレコードは共存できない。さらに言えば、CNAMEは他のレコードと共存できない。理由は、CNAMEレコードのセマンティックにある。
+CNAMEが設定されたドメインは、なんらかのレコードの問い合わせがあったとき、CNAMEで指定された別のドメインで設定された値を返す。
+たとえば`a.example.com`にCNAMEレコードとして`b.example.com`が設定されていたとすると、`a.example.com`のTXTレコードの値は`b.example.com`のTXTレコードの値となる。
+そのため、`a.example.com`にCNAMEレコードとTXTレコードが同時に設定されてしまうと、
+`a.example.com`のTXTレコードの値として`a.example.com`それ自身に設定された値を使うのか`b.example.com`に設定された値を使うのかを決められなくなってしまう。
+このような事態を防ぐため、CNAMEレコードは他のレコードと共存できないことになっている。
+
+このエントリは、AWS Consoleが発した"UnknownError"の、ほとんどゼロに等しい情報量を、ほんのわずかでも上げるための試みである。

@@ -1,0 +1,33 @@
+---
+layout: post
+title:  "Github Actionsを用いたGithub Pagesの公開"
+date:   2026-01-26 11:38:50 +0900
+tags:
+- GitHub Pages
+- workflow
+- jekyll
+---
+
+GitHub Actionsを使ってGitHub Pagesを公開するためには、そのためのworkflowを追加する必要がある。
+workflowを作る上では、一から自分で書く必要はなく、
+[`actions/starter-workflows`リポジトリの`pages/jekyll.yml`](https://github.com/actions/starter-workflows/blob/afb9bf31201eb5febe3b6e76b73fb1fe0b987634/pages/jekyll.yml)をベースにすることができる。
+
+しかし、Rubyのバージョン指定が古く、そのままでは動作しなかったため、以下の変更を加えた。
+
+{% highlight diff %}
+@@ -37,7 +37,7 @@ jobs:
+         # https://github.com/ruby/setup-ruby/releases/tag/v1.207.0
+         uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4
+         with:
+-          ruby-version: '3.1' # Not needed with a .ruby-version file
++          ruby-version: '3.4' # Not needed with a .ruby-version file
+           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+           cache-version: 0 # Increment this number if you need to re-download cached gems
+       - name: Setup Pages
+{% endhighlight %}
+
+書き換えたファイルを`jekyll.yml`というファイル名で`.github/workflows`に入れ、
+さらにリポジトリの設定からGithub PagesのSourceを「Deploy from a branch」から「Github Actions」に変更することで、
+mainブランチが更新されたときに自動的に`jekyll`によるビルドがなされ、Github Pagesとしてデプロイされるようになった。
+
+この変更をPRとして`actions/starter-workflows`リポジトリに送ろうと思ったが、Issue/PRのフローが機能していなさそうだったのでやめた。

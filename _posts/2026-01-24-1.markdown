@@ -1,0 +1,190 @@
+---
+layout: post
+title:  "macOSにjekyllをインストールしたときのエラーとその解決"
+date:   2026-01-24 10:55:43 +0900
+tags:
+- Ruby
+- jekyll
+- clang++
+- macOS
+---
+
+## 環境
+
+```
+% uname -a
+Darwin sakuramochi.local 24.6.0 Darwin Kernel Version 24.6.0: Mon Jul 14 11:30:34 PDT 2025; root:xnu-11417.140.69~1/RELEASE_ARM64_T8103 x86_64
+% chruby --version
+chruby: 0.3.9
+% ruby-install --version
+ruby-install: 0.10.1
+% ruby --version
+ruby 3.4.8 (2025-12-17 revision 995b59f666) +PRISM [x86_64-darwin24]
+```
+
+## 現象
+
+`gem`を使って`jekyll`をインストールしようとしたところ、以下のエラーが発生した。
+
+```
+% gem install jekyll
+(omitted)
+Building native extensions. This could take a while...
+ERROR:  Error installing jekyll:
+	ERROR: Failed to build gem native extension.
+
+    current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+/Users/sakuramochi/.rubies/ruby-3.4.8/bin/ruby extconf.rb
+checking for pkg-config for openssl... ["-I/usr/local/Cellar/openssl@3/3.6.0/include ", "-L/usr/local/Cellar/openssl@3/3.6.0/lib", "-lssl -lcrypto"]
+-----
+Using OpenSSL from pkg-config -I/usr/local/Cellar/openssl@3/3.6.0/include  && -L/usr/local/Cellar/openssl@3/3.6.0/lib && -lssl -lcrypto
+-----
+checking for -lcrypto... yes
+checking for -lssl... yes
+checking for openssl/ssl.h... yes
+checking for openssl/err.h... yes
+checking for rb_trap_immediate in ruby.h,rubysig.h... no
+checking for rb_thread_blocking_region()... no
+checking for rb_thread_call_without_gvl() in ruby/thread.h... yes
+checking for rb_thread_fd_select()... yes
+checking for rb_fdset_t in ruby/intern.h... yes
+checking for rb_wait_for_single_fd()... yes
+checking for rb_enable_interrupt()... no
+checking for rb_time_new()... yes
+checking for inotify_init() in sys/inotify.h... no
+checking for __NR_inotify_init in sys/syscall.h... no
+checking for writev() in sys/uio.h... yes
+checking for pipe2() in unistd.h... no
+checking for accept4() in sys/socket.h... no
+checking for SOCK_CLOEXEC in sys/socket.h... no
+checking for sys/event.h... yes
+checking for sys/queue.h... yes
+checking for clock_gettime()... yes
+checking for CLOCK_MONOTONIC_RAW in time.h... yes
+checking for CLOCK_MONOTONIC in time.h... yes
+CXXFLAGS=-fdeclspec
+creating Makefile
+
+current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+make DESTDIR\= sitearchdir\=./.gem.20260124-2254-decn5v sitelibdir\=./.gem.20260124-2254-decn5v clean
+
+current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+make DESTDIR\= sitearchdir\=./.gem.20260124-2254-decn5v sitelibdir\=./.gem.20260124-2254-decn5v
+compiling binder.cpp
+In file included from binder.cpp:20:
+./project.h:25:10: fatal error: 'iostream' file not found
+   25 | #include <iostream>
+      |          ^~~~~~~~~~
+1 error generated.
+make: *** [binder.o] Error 1
+
+make failed, exit code 2
+
+Gem files will remain installed in /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7 for inspection.
+Results logged to /Users/sakuramochi/.gem/ruby/3.4.8/extensions/x86_64-darwin-24/3.4.0-static/eventmachine-1.2.7/gem_make.out
+```
+
+`ruby`を再インストールしてもう一度`jekyll`のインストールを試したところ、以下のようなエラーに変わった。
+
+```
+% rm -rf .rubies/ruby-3.4.8
+% ruby-install 3.4.8
+(omitted)
+% ruby --version
+ruby 3.4.8 (2025-12-17 revision 995b59f666) +PRISM [x86_64-darwin24]
+% gem install jekyll
+Building native extensions. This could take a while...
+ERROR:  Error installing jekyll:
+	ERROR: Failed to build gem native extension.
+
+    current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+/Users/sakuramochi/.rubies/ruby-3.4.8/bin/ruby extconf.rb
+checking for pkg-config for openssl... ["-I/usr/local/Cellar/openssl@3/3.6.0/include ", "-L/usr/local/Cellar/openssl@3/3.6.0/lib", "-lssl -lcrypto"]
+-----
+Using OpenSSL from pkg-config -I/usr/local/Cellar/openssl@3/3.6.0/include  && -L/usr/local/Cellar/openssl@3/3.6.0/lib && -lssl -lcrypto
+-----
+checking for -lcrypto... yes
+checking for -lssl... yes
+checking for openssl/ssl.h... yes
+checking for openssl/err.h... yes
+checking for rb_trap_immediate in ruby.h,rubysig.h... no
+checking for rb_thread_blocking_region()... no
+checking for rb_thread_call_without_gvl() in ruby/thread.h... yes
+checking for rb_thread_fd_select()... yes
+checking for rb_fdset_t in ruby/intern.h... yes
+checking for rb_wait_for_single_fd()... yes
+checking for rb_enable_interrupt()... no
+checking for rb_time_new()... yes
+checking for inotify_init() in sys/inotify.h... no
+checking for __NR_inotify_init in sys/syscall.h... no
+checking for writev() in sys/uio.h... yes
+checking for pipe2() in unistd.h... no
+checking for accept4() in sys/socket.h... no
+checking for SOCK_CLOEXEC in sys/socket.h... no
+checking for sys/event.h... yes
+checking for sys/queue.h... yes
+checking for clock_gettime()... yes
+checking for CLOCK_MONOTONIC_RAW in time.h... yes
+checking for CLOCK_MONOTONIC in time.h... yes
+CXXFLAGS=-fdeclspec
+creating Makefile
+
+current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+make DESTDIR\= sitearchdir\=./.gem.20260124-35188-iyfb3t sitelibdir\=./.gem.20260124-35188-iyfb3t clean
+
+current directory: /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7/ext
+make DESTDIR\= sitearchdir\=./.gem.20260124-35188-iyfb3t sitelibdir\=./.gem.20260124-35188-iyfb3t
+compiling binder.cpp
+make: *** [binder.o] Error 1
+
+make failed, exit code 2
+
+Gem files will remain installed in /Users/sakuramochi/.gem/ruby/3.4.8/gems/eventmachine-1.2.7 for inspection.
+Results logged to /Users/sakuramochi/.gem/ruby/3.4.8/extensions/x86_64-darwin-24/3.4.0-static/eventmachine-1.2.7/gem_make.out
+```
+
+## 解決
+
+原因は、macOSのシステム付属の`clang++`が壊れていたことである。
+
+```
+% cat test.cpp
+#include <iostream>
+int main() {
+    return 0;
+}
+% clang++ test.cpp
+test.cpp:1:10: fatal error: 'iostream' file not found
+    1 | #include <iostream>
+      |          ^~~~~~~~~~
+1 error generated.
+```
+
+XCode Command Line Toolsを丸ごと再インストールし、その後`ruby`を再インストールすることで解決した。
+
+```
+% xcode-select -p
+/Library/Developer/CommandLineTools
+% sudo rm -rf `xcode-select -p`
+Password:
+% xcode-select --install
+xcode-select: note: install requested for command line developer tools
+% clang++ test.cpp
+% rm -rf .rubies/ruby-3.4.8
+% ruby-install 3.4.8
+(omitted)
+% ruby --version
+ruby 3.4.8 (2025-12-17 revision 995b59f666) +PRISM [x86_64-darwin24]
+% gem install jekyll
+(omitted)
+% jekyll --version
+jekyll 4.4.1
+```
+
+再現実験をしてみたところ、`ruby-install`の実行時点で`clang++`が壊れていた場合は後者のエラーが、
+`ruby-install`の実行時点で正常に動いていた`clang++`が`gem install jekyll`時点で壊れていた場合は前者のエラーが、
+それぞれ起こることがわかった。
+
+## 参考リンク
+
+- <https://github.com/eventmachine/eventmachine/issues/1010>

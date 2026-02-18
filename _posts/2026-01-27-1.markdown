@@ -1,0 +1,38 @@
+---
+layout: post
+title:  "GitHub Actionsにおけるjekyllオプションの指定方法について"
+tags:
+- GitHub Pages
+- workflow
+- jekyll
+---
+
+`jekyll`でビルドしたwebサイトを公開するパスを変更したいとき、設定すべき`_config.yml`のオプションは`baseurl`と`url`の2つである。
+`baseurl`オプションは公開するwebサイトのパス、`url`オプションはwebサイトのホスト名とプロトコルの組みを意味する。
+たとえば`https://example.com/blog`として公開する場合、`baseurl`オプションは`/blog`、`url`オプションは`https://example.com`に設定する必要がある。
+
+以下、GitHub Actionsを用いてGitHub Pagesを公開するケースを考える。
+`actions/starter-workflow`リポジトリにあるサンプルコード[`pages/jekyll.yml`](https://github.com/actions/starter-workflows/blob/afb9bf31201eb5febe3b6e76b73fb1fe0b987634/pages/jekyll.yml)では、
+以下のようなコマンドで`jekyll`を走らせてビルドを行っている。
+```
+{% raw %}bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"{% endraw %}
+```
+ここで、`--baseurl`は`_config.yml`で設定された`baseurl`オプションを上書きするコマンドラインオプションであり、
+`steps.pages.outputs.base_path`は設定すべき`baseurl`オプションの値を取得できる変数である。
+つまり、`_config.yml`で`baseurl`オプションを指定しなくても正しい値で上書きされるため、
+独自ドメインを設定するなどしてGitHub Pagesのパスが変わったときでも`_config.yml`を書き換える必要はない。
+
+それでは`url`オプションを自動で設定することはできないのだろうか。
+もしできるのであれば、GitHub Pagesのパスが変わったときに`_config.yml`を一切書き換える必要がなくなり、
+リビルドだけをすれば良いということになる。
+
+`url`オプションに設定すべき値は、
+`actions/configure-pages`のサンプルコード[`action.yml`](https://github.com/actions/configure-pages/blob/main/action.yml)に記載がある通り、
+`steps.pages.outputs.origin`変数で取得できる。
+しかし、`url`オプションをこの値で上書きすることはできない。
+なぜなら、`url`オプションを上書きするコマンドラインオプションが存在しないからだ。
+```
+{% raw %}$ bundle exec jekyll build --url "${{ steps.pages.outputs.origin }}"{% endraw %}
+Deprecation: The 'url' setting can only be set in your config files.
+```
+警告の文面から判断すると、コマンドラインで`url`を設定できないのは意図的な仕様のようだが、その理由は不明である。

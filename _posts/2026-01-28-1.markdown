@@ -1,0 +1,33 @@
+---
+layout: post
+title:  "GitHub Pagesについての日本語版GitHub Docsの誤訳について"
+tags:
+- GitHub Pages
+- GitHub Docs
+- 日本語訳
+---
+
+GitHub公式ドキュメントの、[GitHub Pagesについて説明している部分](https://docs.github.com/ja/pages/getting-started-with-github-pages/what-is-github-pages#github-pages-サイトの種類)に、
+次のような記述がある。
+
+> アカウントごとに最大 1 ページのサイト/リポジトリごとに最大 1 ページのサイト
+
+これは、GitHub Pagesには「user sites」と「organization sites」の2種類があるという説明の中で、比較表を用いて特徴を対比している部分である。
+この部分は「user sitesはアカウントごとに最大 1 ページのサイトを、project sitesはリポジトリごとに最大1ページのサイトを、それぞれホストできる」と読むことができるが、
+GitHub Pagesはもちろん複数のページからなるWebサイトをホストできるため、現状と整合しない。
+
+この箇所の、原文の英語は次のようになっている(私の英語力の問題かもしれないが、原文がすでにかなり紛らわしい表現となっていると思う)。
+
+> Maximum of one pages site per account / Maximum of one pages site per repository
+
+問題は「one pages site」の部分である。
+日本語訳は、「one pages」という形容詞句が「site」を修飾する、という構造として解釈しているが、この解釈には文法的に2つの難点がある。
+一つは「pages」が単数形でなく複数形であるという点、もう一つは「one-pages」のようにハイフンが入っていないという点である。
+
+これらの難点、および現状との不整合を踏まえて、別の解釈をしてみる。
+つまり、「pages」は「GitHub Pages」という意味であり、「pages site」は「GitHub PagesのWebサイト」という意味の複合名詞であると考える。
+この解釈だとそれぞれ「アカウントごとに最大一つのサイト/リポジトリごとに最大一つのサイト」という日本語訳となり、現状と整合する。
+この解釈にも「pages」の先頭が大文字でないという難点はあるが、現状の日本語訳よりは妥当に思える。
+
+この問題については、公式リポジトリに[Issue](https://github.com/github/docs/issues/42594)を出した。
+紛らわしい英語表現の指摘にすることも考えたが、明確に誤りというわけではないため、日本語訳の問題とするに留めておいた。
