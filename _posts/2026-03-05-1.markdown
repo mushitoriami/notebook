@@ -1,0 +1,48 @@
+---
+layout: post
+title:  "zshにおけるgitコマンドの入力補完が動作しないことがある"
+tags:
+- zsh
+- git
+- tab-completions
+---
+
+zshでは、gitコマンドの入力補完を有効にすることができる([Pro Git](https://git-scm.com/book/en/v2/Appendix-A:-Git-in-Other-Environments-Git-in-Zsh)参照)。
+方法は簡単で、`autoload -Uz compinit && compinit`というコマンドを実行すれば良い。
+
+しかしこの入力補完だが、うまく動作しないことがある。
+再現可能なパターンとしてはたとえば、「`git branch --delete`に渡す引数の、3つ目以降の補完が効かない」というものがある。
+
+具体的に動作を示してみる。たとえば、以下のようにGitリポジトリをセットアップする。
+```
+git init
+git commit --allow-empty -m "Initial Commit"
+git branch a-branch
+git branch b-branch
+git branch c-branch
+```
+
+まず、`git branch --delete`と打ち込み、Tabを2回押すと、以下の候補が出てくる。
+```
+a-branch  b-branch  c-branch  main
+```
+
+次に、ブランチを1つ指定した上で(`git branch --delete a-branch`と打ち込み)、Tabを2回押すと、以下の候補が出てくる。
+```
+a-branch  b-branch  c-branch  HEAD      main
+2276c8a  -- [HEAD]    Initial Commit
+```
+この時点ですでに候補が怪しい。`--delete`オプションのときの引数として、コミットハッシュは指定できないはずだ。
+しかし、ブランチ名が候補に入っていることに変わりはなく、ブランチ名の先頭数文字を打ち込めば補完されるという動作はしてくれる。
+
+さらに、ブランチを2つ指定した上で(`git branch --delete a-branch b-branch`と打ち込み)、Tabを2回押すと、
+`-`が自動で補完された上、以下の候補が出てくる。
+```
+--column           -- display tag listing in columns
+--ignore-case  -i  -- sorting and filtering are case-insensitive
+--no-column        -- don't display in columns
+--quiet        -q  -- be more quiet
+-vv                -- show SHA1 and commit subject line for each head
+```
+候補がオプションだけになってしまった。これは`--delete`オプションと共存可能なものの一覧なのかもしれない。
+とにかく、ブランチ名の先頭数文字を打ち込んでも補完されなくなったわけだ。
