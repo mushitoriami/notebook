@@ -1,0 +1,35 @@
+---
+layout: post
+title:  "reStructuredTextではmarkdown形式のコードブロックが使えない"
+tags:
+- reStructuredText
+- markdown
+---
+
+reStructuredTextドキュメント中では、markdown形式のコードブロックを使うことはできない。
+つまり、ドキュメント中にソースコードを入れるときに、以下のように書くことはできない。
+
+````
+```python
+print("Hello")
+```
+````
+
+代わりに、以下のように`code-block`ディレクティブを使う必要がある。
+
+````
+.. code-block:: python
+
+   print("Hello")
+````
+
+reStructuredTextはmarkdownではないため、至極当たり前の話ではある。しかし、markdownは使いやすい記法であり、使える場所も広いため、気づかないうちに使ってしまう人は多いのではなかろうか。
+
+さらに面倒なことに、reStructuredTextドキュメントにmarkdown形式のコードブロックが紛れ込んでいても、sphinx-buildが警告を出さない。
+かといって正しい出力がなされるわけではなく、`` ` print("hello") ` ``というコードスニペットとして出力されてしまう。
+目視ではミスに気付きづらい上、コードをコピペすると間違いなく失敗する。本当に厄介である。
+
+実際、toxの公式ドキュメントにおいてこのマークアップエラーが見逃されていた(すでに[PR](https://github.com/tox-dev/tox/pull/3675)がマージされ、修正済み)。
+
+ちなみに、sphinx-buildで検出できないマークアップエラーを検出するという目的の[sphinx-lint](https://github.com/sphinx-contrib/sphinx-lint)というツールがあるのだが、markdown形式のコードブロックは検出できなかった。
+一応、sphinx-lintにも[Issue](https://github.com/sphinx-contrib/sphinx-lint/issues/155)として報告しておいた。
